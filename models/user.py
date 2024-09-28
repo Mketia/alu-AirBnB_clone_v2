@@ -1,29 +1,46 @@
 #!/usr/bin/python3
-"""User class"""
-from models.base_model import BaseModel, Base
-from sqlalchemy import String, DateTime, Column, ForeignKey
+"""Defines the State class."""
+import models
+from os import getenv
+from models.base_model import Base
+from models.base_model import BaseModel
+from models.city import City
+from sqlalchemy import Column
+from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
 
-class User(BaseModel, Base):
-    """This is the class for user
-    Attributes:
-        email: email address
-        password: password for you login
-        first_name: first name
-        last_name: last name
-    """
-    __tablename__ = 'users'
+class State(BaseModel, Base):
+    """Represents a state for a MySQL database.
 
+    Inherits from SQLAlchemy Base and links to the MySQL table states.
+
+    Attributes:
+        __tablename__ (str): The name of the MySQL table to store States.
+        name (sqlalchemy String): The name of the State.
+        cities (sqlalchemy relationship): The State-City relationship.
+    """
+    __tablename__ = "states"
+    name = Column(String(128), nullable=False)
     email = Column(String(128), nullable=False)
     password = Column(String(128), nullable=False)
     first_name = Column(String(128), nullable=True)
     last_name = Column(String(128), nullable=True)
-    places = relationship(
-        'Place',
-        backref='user',
-        cascade='all, delete-orphan')
-    reviews = relationship(
-        'Review',
-        backref='user',
-        cascade='all, delete-orphan')
+    cities = relationship("City",  backref="state", cascade="delete")
+    # places = relationship(
+    #     'Place',
+    #     backref='user',
+    #     cascade='all, delete-orphan')
+    # reviews = relationship(
+    #     'Review',
+    #     backref='user',
+    #     cascade='all, delete-orphan')
+    if getenv("HBNB_TYPE_STORAGE") != "db":
+        @property
+        def cities(self):
+            """Get a list of all related City objects."""
+            city_list = []
+            for city in list(models.storage.all(City).values()):
+                if city.state_id == self.id:
+                    city_list.append(city)
+            return city_list
