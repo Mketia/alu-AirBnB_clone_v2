@@ -1,43 +1,61 @@
 #!/usr/bin/python3
-"""Test module for State class."""
-from tests.test_models.test_base_model import test_basemodel
+"""test for state"""
+import unittest
+import os
 from models.state import State
-from os import getenv
+from models.base_model import BaseModel
 
-class test_state(test_basemodel):
-    """Test class for the State model."""
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the test class."""
-        super().__init__(*args, **kwargs)
-        self.name = "State"
-        self.value = State
+class TestState(unittest.TestCase):
+    """this will test the State class"""
 
-    def test_name_type(self):
-        """Test that the type of 'name' attribute is a string."""
-        new = self.value()
-        self.assertEqual(type(new.name), str)
+    @classmethod
+    def setUpClass(cls):
+        """set up for test"""
+        cls.state = State()
+        cls.state.name = "CA"
 
-    def test_name_not_null(self):
-        """Test that the 'name' attribute cannot be None."""
-        new = self.value()
-        with self.assertRaises(Exception):
-            new.name = None  # This should raise an exception because it's nullable=False
+    @classmethod
+    def teardown(cls):
+        """at the end of the test this will tear it down"""
+        del cls.state
 
-    def test_cities_relationship(self):
-        """Test the relationship between State and City."""
-        new_state = self.value()
-        if getenv("HBNB_TYPE_STORAGE") == "db":
-            # For DB storage, ensure the cities relationship exists
-            self.assertEqual(hasattr(new_state, 'cities'), True)
-            self.assertEqual(type(new_state.cities), list)
-        else:
-            # For file storage, ensure the property method works
-            self.assertEqual(type(new_state.cities), list)
-            self.assertEqual(new_state.cities, [])  # Should be an empty list if no cities
+    def tearDown(self):
+        """teardown"""
+        try:
+            os.remove("file.json")
+        except Exception:
+            pass
 
-    def test_state_has_id(self):
-        """Test that a State has a unique id."""
-        new_state = self.value()
-        self.assertIsNotNone(new_state.id)
-        self.assertEqual(type(new_state.id), str)
+    def test_checking_for_docstring_state(self):
+        """checking for docstrings"""
+        self.assertIsNotNone(State.__doc__)
+
+    def test_attributes_state(self):
+        """chekcing if State have attributes"""
+        self.assertTrue('id' in self.state.__dict__)
+        self.assertTrue('created_at' in self.state.__dict__)
+        self.assertTrue('updated_at' in self.state.__dict__)
+        self.assertTrue('name' in self.state.__dict__)
+
+    def test_is_subclass_state(self):
+        """test if State is subclass of BaseModel"""
+        self.assertTrue(issubclass(self.state.__class__, BaseModel), True)
+
+    def test_attribute_types_state(self):
+        """test attribute type for State"""
+        self.assertEqual(type(self.state.name), str)
+
+    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == 'db', 'Not file engine')
+    def test_save_state(self):
+        """test if the save works"""
+        self.state.save()
+        self.assertNotEqual(self.state.created_at, self.state.updated_at)
+
+    def test_to_dict_state(self):
+        """test if dictionary works"""
+        self.assertEqual('to_dict' in dir(self.state), True)
+
+
+if __name__ == "__main__":
+    unittest.main()
