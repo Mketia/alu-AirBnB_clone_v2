@@ -21,7 +21,6 @@ class State(BaseModel, Base):
         cities (sqlalchemy relationship): The State-City relationship.
     """
     __tablename__ = "states"
-    name = Column(String(128), nullable=False)
     email = Column(String(128), nullable=False)
     password = Column(String(128), nullable=False)
     first_name = Column(String(128), nullable=True)
