@@ -1,31 +1,35 @@
 #!/usr/bin/env bash
-#web_static development
-
-sudo apt-get -y update
-sudo apt-get -y upgrade
+# script that sets up web servers for the deployment of web_static
+sudo apt-get update
 sudo apt-get -y install nginx
-sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
-echo "Hello, this is a test HTML file." | sudo tee /data/web_static/releases/test/index.html
-# Adding the new configuration for /hbnb_static/0-index.html
-echo "<!DOCTYPE html>
-<html lang=\"en\">
-    <head>
-        <meta charset=\"UTF-8\" />
-        <title>AirBnB clone</title>
-    </head>
-    <body style=\"margin: 0px; padding: 0px;\">
-        <header style=\"height: 70px; width: 100%; background-color: #FF0000\">
-        </header>
+sudo ufw allow 'Nginx HTTP'
 
-        <footer style=\"position: absolute; left: 0; bottom: 0; height: 60px; width: 100%; background-color: #00FF00; text-align: center; overflow: hidden;\">
-            <p style=\"line-height: 60px; margin: 0px;\">Holberton School</p>
-        </footer>
-    </body>
-</html>" | sudo tee /data/web_static/releases/test/0-index.html
-# End of new configuration
+# Create necessary directories
+sudo mkdir -p /data/web_static/releases/test/
+sudo mkdir -p /data/web_static/shared/
 
-sudo rm -rf /data/web_static/current
-sudo ln -s /data/web_static/releases/test/ /data/web_static/current
+# Add test HTML file to the test folder
+sudo tee /data/web_static/releases/test/index.html > /dev/null <<EOF
+<html>
+  <head>
+  </head>
+  <body>
+    Holberton School
+  </body>
+</html>
+EOF
+
+# Create a symbolic link to /data/web_static/current
+sudo ln -sfn /data/web_static/releases/test/ /data/web_static/current
+
+# Give ownership of the /data/ folder to ubuntu user and group
 sudo chown -R ubuntu:ubuntu /data/
-sudo sed -i '44i \\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}' /etc/nginx/sites-available/default
+
+# Update the Nginx configuration to serve the content
+sudo sed -i '/listen 80 default_server/a location /hbnb_static { alias /data/web_static/current/; }' /etc/nginx/sites-enabled/default
+
+# Test the Nginx configuration to ensure there are no syntax errors
+sudo nginx -t
+
+# Restart Nginx to apply the changes
 sudo service nginx restart
