@@ -47,3 +47,5 @@ def do_deploy(archive_path):
            format(name)).failed is True:
         return False
     return True
+    print("Deploying to the server")
+    run("echo Deployed to /data/web_static/releases/{}/".format(name))
